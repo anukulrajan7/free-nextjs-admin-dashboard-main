@@ -1,10 +1,45 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import ClickOutside from "@/components/ClickOutside";
+import { getCookie } from "@/cookeies";
+import { UserProfile } from "@/types/userDetails";
+import { apiUrl } from "@/Service";
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [user, setUser] = useState<UserProfile | null>(null);
+
+  const fetchUserInfo = async (): Promise<void> => {
+    const authToken: string | undefined = getCookie("token");
+
+    if (authToken) {
+      try {
+        const response = await fetch(apiUrl.getUserDetail, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`, // Authorization header with Bearer token
+          },
+        });
+
+        if (response.ok) {
+          const userData: UserProfile = await response.json();
+          setUser(userData);
+        } else {
+          console.error("Failed to fetch user data", response.status);
+        }
+      } catch (error) {
+        console.error("An error occurred while fetching user data", error);
+      }
+    } else {
+      console.error("Auth token is missing");
+    }
+  };
+
+  useEffect(() => {
+    fetchUserInfo();
+  }, []);
 
   return (
     <ClickOutside onClick={() => setDropdownOpen(false)} className="relative">
@@ -15,16 +50,16 @@ const DropdownUser = () => {
       >
         <span className="hidden text-right lg:block">
           <span className="block text-sm font-medium text-black dark:text-white">
-            Thomas Anree
+            {user ? user.name : "User Name"}
           </span>
-          <span className="block text-xs">UX Designer</span>
+          <span className="block text-xs">{user ? user.name : "Role"}</span>
         </span>
 
         <span className="h-12 w-12 rounded-full">
           <Image
             width={112}
             height={112}
-            src={"/images/user/user-01.png"}
+            src={user?.profilePicture || "/images/user/user-01.png"}
             style={{
               width: "auto",
               height: "auto",
@@ -50,9 +85,19 @@ const DropdownUser = () => {
         </svg>
       </Link>
 
-      {/* <!-- Dropdown Start --> */}
-
-      {/* <!-- Dropdown End --> */}
+      {/* Dropdown menu */}
+      {dropdownOpen && (
+        <div className="absolute right-0 mt-2 w-48 overflow-hidden rounded-lg bg-white shadow-lg">
+          <button
+            className="text-gray-800 hover:bg-gray-100 block w-full px-4 py-2 text-left"
+            onClick={() => {
+              /* Handle logout */
+            }}
+          >
+            Logout
+          </button>
+        </div>
+      )}
     </ClickOutside>
   );
 };

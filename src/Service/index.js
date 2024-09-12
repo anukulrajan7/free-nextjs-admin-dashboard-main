@@ -5,6 +5,7 @@ export const apiUrl = {
   newUrl: baseUrl + "api/profile",
   getAllUsers: baseUrl + "api/admin/users",
   getUserDetails: baseUrl + "api/admin/users/",
+  getUserDetail: baseUrl + "api/profile",
   updateUser: baseUrl + "api/admin/users/",
   getAllPropertiesDeteails: baseUrl + "api/admin/properties",
   getPropertyDetails: baseUrl + "api/admin/properties/",

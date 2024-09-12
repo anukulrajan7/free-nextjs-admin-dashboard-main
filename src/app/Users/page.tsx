@@ -3,9 +3,12 @@ import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { useState, useEffect } from "react";
 import { apiUrl } from "@/Service/index";
-import { UserProfiles } from "@/types/userDetails";
+import { UserProfile, UserProfiles } from "@/types/userDetails";
 import { getCookie } from "@/cookeies";
-
+import Image from "next/image";
+import { FaEdit } from "react-icons/fa";
+import { FaEye } from "react-icons/fa6";
+import { IoClose } from "react-icons/io5";
 const TablesPage: React.FC = () => {
   const [userData, setUserData] = useState<UserProfiles>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null); // Hold selected user
@@ -13,6 +16,8 @@ const TablesPage: React.FC = () => {
   const [updatedName, setUpdatedName] = useState(""); // To handle name changes
   const [updatedEmail, setUpdatedEmail] = useState(""); // To handle email changes
   const [errors, setErrors] = useState({ name: "", email: "" });
+  const [user, setUser] = useState<UserProfile>();
+  const [isViewModal, setIsViewModal] = useState(false);
 
   const getUserInfo = async (): Promise<UserProfiles> => {
     const authToken: string | undefined = getCookie("token");
@@ -55,16 +60,17 @@ const TablesPage: React.FC = () => {
     setIsModalOpen(true); // Open modal when edit is clicked
   };
 
+  const handleViewClick = (userData: UserProfile) => {
+    if (userData) {
+      setUser(userData);
+      setIsViewModal(true);
+    }
+  };
+
   const handleModalClose = () => {
     setIsModalOpen(false);
     setSelectedUser(null);
     setErrors({ name: "", email: "" });
-  };
-
-  const handleOutsideClick = (e: any) => {
-    if (e.target.id === "modal-background") {
-      handleModalClose();
-    }
   };
 
   const handleSubmit = () => {
@@ -83,35 +89,83 @@ const TablesPage: React.FC = () => {
     }
   };
 
+  const handleOutsideClick = (e: any) => {
+    if (e.target.id === "modal-background") {
+      handleModalClose();
+    }
+  };
+
   return (
     <DefaultLayout>
       <Breadcrumb pageName="Users" />
 
-      <div className="max-h-[70vh] w-full max-w-[90vw] overflow-auto rounded-md bg-slate-100 p-4 shadow-lg">
-        <table className="w-full border-collapse bg-white shadow-lg">
-          <thead className="bg-gray-300">
+      <div className="r max-h-[70vh] w-full max-w-[90vw] overflow-auto bg-slate-100 p-4 shadow-lg ">
+        <table className="w-full shadow-lg shadow-gray">
+          <thead>
             <tr>
-              <th className="border px-4 py-2">User Name</th>
-              <th className="border px-4 py-2">Email</th>
-              <th className="border px-4 py-2">Number</th>
-              <th className="border px-4 py-2">Balance</th>
-              <th className="border px-4 py-2">Actions</th>
+              <th className="font-l s rounded-tl-lg border-r border-[#F2F8F6]  bg-[#181A53] px-4 py-2 text-white">
+                User Name
+              </th>
+              <th className=" border-r border-[#F2F8F6]   bg-[#181A53]    px-4 py-3 font-[500] text-[#F2F8F6]">
+                Email
+              </th>
+              <th className=" border-r border-[#F2F8F6]  bg-[#181A53]    px-4 py-3 font-[500] text-[#F2F8F6]">
+                Number
+              </th>
+              <th className=" border-r border-[#F2F8F6]  bg-[#181A53]    px-4 py-3 font-[500] text-[#F2F8F6]">
+                Balance
+              </th>
+              <th className="rounded-tr-md       bg-[#181A53]    px-4 py-3 font-[500] text-[#F2F8F6]">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             {userData.map((user) => (
-              <tr key={user._id} className="hover:bg-gray-100 bg-white">
-                <td className="border px-4 py-2">{user.name}</td>
-                <td className="border px-4 py-2">{user.email}</td>
-                <td className="border px-4 py-2">{user.number}</td>
-                <td className="border px-4 py-2">{user.balance}</td>
+              <tr
+                key={user._id}
+                className="hover:bg-gray-100 bg-white hover:bg-gray-3"
+              >
+                <td className="border-b border-r border-[#181A53]  px-7 py-3 text-[1rem] font-[400] capitalize text-[#181A53]">
+                  {" "}
+                  <div className=" flex items-center justify-start gap-4">
+                    <Image
+                      width={20}
+                      height={20}
+                      objectFit="center"
+                      className="h-8 w-8 rounded-full object-cover object-center"
+                      alt={user.name}
+                      src={user.profilePicture || "/images/user/user-06.png"}
+                    />
+                    <p>{user.name}</p>
+                  </div>
+                </td>
+                <td className="border-b border-r border-[#181A53]  px-4 py-3 text-center text-[1rem] font-[400] capitalize text-[#181A53]">
+                  {user.email}
+                </td>
+                <td className="border-b border-r border-[#181A53]  px-4 py-3 text-center text-[1rem] font-[400] capitalize text-[#181A53]">
+                  {user.number}
+                </td>
+                <td className="border-b border-r border-[#181A53]  px-4 py-3 text-center text-[1rem] font-[400] capitalize text-[#181A53]">
+                  {user.balance}
+                </td>
                 <td className="border px-4 py-2 text-center">
-                  <button
-                    className="text-blue-600 hover:underline"
-                    onClick={() => handleEditClick(user)}
-                  >
-                    Edit
-                  </button>
+                  <div className="flex items-center justify-center gap-4">
+                    <button>
+                      <FaEye
+                        className="cursor-pointer text-lg text-[#BDEA09]"
+                        onClick={() => {
+                          handleViewClick(user);
+                        }}
+                      />
+                    </button>
+                    <button
+                      className="text-[#181A53] hover:underline"
+                      onClick={() => handleEditClick(user)}
+                    >
+                      <FaEdit />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -123,57 +177,134 @@ const TablesPage: React.FC = () => {
       {isModalOpen && (
         <div
           id="modal-background"
-          className="bg-gray-900 fixed inset-0 z-10 flex items-center justify-center bg-opacity-50"
-          onClick={handleOutsideClick}
+          className="fixed inset-0 z-10 flex items-center justify-center  bg-[#5f5f5f] bg-opacity-50 backdrop-blur-[2px]"
         >
           <div
-            className="transform rounded-lg bg-white p-6 shadow-lg transition-all ease-in-out"
+            className="relative min-w-[80%] transform  rounded-[25px] bg-[#0E0E0C] p-6 px-9 shadow-lg shadow-graydark transition-all  ease-in-out md:min-w-[30%] lg:min-w-[25%]"
             style={{ animation: "fadeIn 0.3s" }}
           >
-            <h3 className="mb-4 text-xl font-semibold">Edit User</h3>
-            <div className="mb-4">
-              <label className="text-gray-700 block text-sm font-medium">
+            <IoClose
+              className=" absolute right-5 top-5 cursor-pointer text-[2rem] text-[#BDEA09]"
+              onClick={handleModalClose}
+            />
+            <h3 className="mb-4 text-center text-xl font-[500] text-[#F2F8F6]">
+              Update User
+            </h3>
+            <div className="relative mb-6">
+              <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
                 Name
               </label>
               <input
                 type="text"
                 value={updatedName}
                 onChange={(e) => setUpdatedName(e.target.value)}
-                className="mt-1 w-full rounded-md border p-2"
+                className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
               />
               {errors.name && (
-                <p className="text-red-500 mt-1 text-xs">{errors.name}</p>
+                <p className=" absolute -bottom-[27%] mt-1 text-sm text-red">
+                  {errors.name}
+                </p>
               )}
             </div>
 
-            <div className="mb-4">
-              <label className="text-gray-700 block text-sm font-medium">
+            <div className="relative mb-6">
+              <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
                 Email
               </label>
               <input
                 type="email"
                 value={updatedEmail}
                 onChange={(e) => setUpdatedEmail(e.target.value)}
-                className="mt-1 w-full rounded-md border p-2"
+                className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
               />
               {errors.email && (
-                <p className="text-red-500 mt-1 text-xs">{errors.email}</p>
+                <p className=" absolute -bottom-[27%] mt-1 text-sm text-red">
+                  {errors.email}
+                </p>
               )}
             </div>
 
-            <div className="mt-6 flex justify-end space-x-4">
+            <div className="mt-3 flex  items-center justify-center gap-3 space-x-4">
               <button
-                className="bg-gray-500 hover:bg-gray-600 rounded px-4 py-2 text-white"
-                onClick={handleModalClose}
-              >
-                Cancel
-              </button>
-              <button
-                className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                className="rounded bg-[#BDEA09] px-[40px] py-2 text-lg font-semibold text-[#0E0E0C] hover:bg-[#d2e87c]"
                 onClick={handleSubmit}
               >
                 Submit
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isViewModal && user && (
+        <div
+          id="modal-background"
+          className="fixed inset-0 z-10 flex items-center justify-center  bg-[#5f5f5f] bg-opacity-50 backdrop-blur-[2px]"
+          onClick={handleOutsideClick}
+        >
+          <div
+            className="relative min-w-[80%]  transform rounded-[25px] bg-[#0E0E0C] p-6 px-9 shadow-lg shadow-graydark transition-all  ease-in-out md:min-w-[30%] lg:min-w-[25%]"
+            style={{ animation: "fadeIn 0.3s" }}
+          >
+            <IoClose
+              className=" absolute right-5 top-5 cursor-pointer text-[2rem] text-[#BDEA09]"
+              onClick={() => {
+                setIsViewModal(false);
+              }}
+            />
+            <Image
+              width={20}
+              height={20}
+              objectFit="center"
+              className="mx-auto mb-4 h-12 w-12 rounded-full object-cover object-center"
+              alt={user.name || "image"}
+              src={user.profilePicture || "/images/user/user-06.png"}
+            />
+            <div className="relative mb-6">
+              <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
+                Email
+              </label>
+              <input
+                type="text"
+                value={user.name}
+                onChange={(e) => setUpdatedName(e.target.value)}
+                className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
+              />
+            </div>
+
+            <div className="relative mb-6">
+              <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
+                Email
+              </label>
+              <input
+                type="email"
+                value={user.email}
+                onChange={(e) => {}}
+                className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
+              />
+            </div>
+            <div className="relative mb-6">
+              <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
+                Balance
+              </label>
+              <input
+                type="email"
+                value={user.balance}
+                onChange={(e) => {}}
+                className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
+              />
+            </div>
+
+            <div className="relative mb-6">
+              <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
+                Phone No
+              </label>
+              <input
+                type="email"
+                value={user.number}
+                onChange={(e) => {}}
+                className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
+              />
             </div>
           </div>
         </div>

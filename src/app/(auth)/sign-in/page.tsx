@@ -44,6 +44,7 @@ const SignIn: React.FC = () => {
 
         // Set the token in the cookie
         document.cookie = `token=${token}; path=/; secure; samesite=strict;`;
+        document.cookie = `token=${token}; path=/; secure; samesite=strict;`;
         router.push("/");
 
         console.log("Token stored in cookie:", token);

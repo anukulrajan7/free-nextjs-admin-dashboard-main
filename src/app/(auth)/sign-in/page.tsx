@@ -41,10 +41,12 @@ const SignIn: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         const { token } = data; // Assuming token is part of the response data
-
+        const date = new Date();
+        date.setTime(date.getTime() + 2 * 60 * 60 * 1000); // 4 hours in milliseconds
+        const expires = `expires=${date.toUTCString()}`;
         // Set the token in the cookie
-        document.cookie = `token=${token}; path=/; secure; samesite=strict;`;
-        document.cookie = `token=${token}; path=/; secure; samesite=strict;`;
+        document.cookie = `token=${token}; path=/; secure; samesite=strict; ${expires}`;
+
         router.push("/");
 
         console.log("Token stored in cookie:", token);

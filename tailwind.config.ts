@@ -26,7 +26,7 @@ const config: Config = {
         black: "#1C2434",
         red: "#FB5454",
         "black-2": "#010101",
-        body: "#64748B",
+        body: "#181A53",
         bodydark: "#AEB7C0",
         bodydark1: "#DEE4EE",
         bodydark2: "#8A99AF",

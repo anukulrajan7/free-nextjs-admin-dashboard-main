@@ -9,6 +9,7 @@ import Image from "next/image";
 import { FaEdit } from "react-icons/fa";
 import { FaEye } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
+import { toast } from "react-toastify";
 const TablesPage: React.FC = () => {
   const [userData, setUserData] = useState<UserProfiles>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null); // Hold selected user
@@ -18,7 +19,7 @@ const TablesPage: React.FC = () => {
   const [errors, setErrors] = useState({ name: "", email: "" });
   const [user, setUser] = useState<UserProfile>();
   const [isViewModal, setIsViewModal] = useState(false);
-
+  const authToken: string | undefined = getCookie("token");
   const getUserInfo = async (): Promise<UserProfiles> => {
     const authToken: string | undefined = getCookie("token");
 
@@ -73,7 +74,7 @@ const TablesPage: React.FC = () => {
     setErrors({ name: "", email: "" });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Basic validation
     if (!updatedName) {
       setErrors((prev) => ({ ...prev, name: "Name is required" }));
@@ -83,8 +84,34 @@ const TablesPage: React.FC = () => {
     ) {
       setErrors((prev) => ({ ...prev, email: "Valid email is required" }));
     } else {
-      // Perform submission logic here
-      console.log("Updated user info:", { updatedName, updatedEmail });
+      const url = `${apiUrl.updateUser}${selectedUser._id}`;
+      console.log("API URL:", url); // Log the API URL
+
+      try {
+        const postBody = { name: updatedName, email: updatedEmail };
+
+        const response = await fetch(url, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify(postBody),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("Success:", data);
+        toast.success("User Data updated");
+        // Handle the response data here
+      } catch (error) {
+        console.error("Error during POST request:", error);
+        toast.error("Error in update");
+      }
+
       handleModalClose();
     }
   };

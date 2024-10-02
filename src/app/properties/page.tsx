@@ -10,16 +10,43 @@ import { FaEdit } from "react-icons/fa";
 import { FaEye } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
 import { toast } from "react-toastify";
+import ViewModal from "@/components/ViewModal";
 
 const TablesPage: React.FC = () => {
   const [propertiesData, setPropertiesData] = useState<PropertyListings>([]);
-
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
-
   const [errors, setErrors] = useState({ name: "", email: "" });
   const [user, setUser] = useState<PropertyListing>();
   const [isViewModal, setIsViewModal] = useState(false);
   const [rentType, setRentType] = useState<"buy" | "rent" | "sale">("buy");
+  const [facing, setFacing] = useState<"north" | "south" | "east" | "west">(
+    "north",
+  );
+  const [property_type, setPropertyType] = useState<
+    "Residential" | "Commercial"
+  >("Residential");
+  const [property_posted_by, setPropertyPostedBy] = useState<"agent" | "owner">(
+    "agent",
+  );
+  const [property_subtype, setPropertySubType] = useState<string>("");
+  const [pincode, setPincode] = useState("");
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Change this to set how many items per page
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prevPage) => prevPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prevPage) => prevPage - 1);
+    }
+  };
+
   const getUserInfo = async (): Promise<PropertyListings> => {
     const authToken: string | undefined = getCookie("token");
 
@@ -58,9 +85,13 @@ const TablesPage: React.FC = () => {
   }, []);
 
   const handleEditClick = (properties: PropertyListing) => {
-    // setUpdatedName(pr.name);
     setRentType(properties.listing_type);
     setUser(properties);
+    setPincode(properties.pincode);
+    setFacing(properties.facing);
+    setPropertyType(properties.property_type);
+    setPropertyPostedBy(properties.property_posted_by);
+    setPropertySubType(properties.property_subtype);
     setIsModalOpen(true); // Open modal when edit is clicked
   };
 
@@ -73,7 +104,6 @@ const TablesPage: React.FC = () => {
 
   const handleModalClose = () => {
     setIsModalOpen(false);
-
     setErrors({ name: "", email: "" });
   };
 
@@ -86,22 +116,26 @@ const TablesPage: React.FC = () => {
   const handleSubmit = async () => {
     const authToken: string | undefined = getCookie("token");
 
-    // Check if authToken and user ID are available
-    if (!authToken) {
-      console.error("Authorization token is missing");
-      return;
-    }
-    if (!user?._id) {
-      console.error("User ID is missing");
+    if (!authToken || !user?._id) {
+      console.error("Authorization token or User ID is missing");
       return;
     }
 
-    const url = `${apiUrl.updateProperty}/${user._id}`;
-    console.log("API URL:", url); // Log the API URL
+    if (!pincode) {
+      return;
+    }
+
+    const url = `${apiUrl.updateProperty}`;
 
     try {
       const postBody = {
+        propertyId: user._id,
+        property_type: property_type,
+        property_subtype: property_subtype,
         listing_type: rentType,
+        pincode: pincode,
+        facing: facing,
+        property_posted_by: property_posted_by,
       };
 
       const response = await fetch(url, {
@@ -120,12 +154,25 @@ const TablesPage: React.FC = () => {
       const data = await response.json();
       console.log("Success:", data);
       toast.success("Properties Listing Type updated");
-      // Handle the response data here
+      // Refresh data after update
+      const updatedData = await getUserInfo();
+      setPropertiesData(updatedData);
     } catch (error) {
       console.error("Error during POST request:", error);
       toast.error("Error in update");
     }
   };
+
+  // Calculate current properties to display
+  const indexOfLastProperty = currentPage * itemsPerPage;
+  const indexOfFirstProperty = indexOfLastProperty - itemsPerPage;
+  const currentProperties = propertiesData.slice(
+    indexOfFirstProperty,
+    indexOfLastProperty,
+  );
+
+  // Calculate total pages
+  const totalPages = Math.ceil(propertiesData.length / itemsPerPage);
 
   return (
     <DefaultLayout>
@@ -135,34 +182,33 @@ const TablesPage: React.FC = () => {
         <table className="w-full shadow-lg shadow-gray">
           <thead>
             <tr>
-              <th className="font-l s rounded-tl-lg border-r border-[#F2F8F6]  bg-[#181A53] px-4 py-2 text-white">
+              <th className="font-l s min-w-[10rem] rounded-tl-lg border-r border-[#F2F8F6]  bg-[#181A53] px-4 py-2 text-white">
                 User Name
               </th>
-              <th className=" border-r border-[#F2F8F6]   bg-[#181A53]    px-4 py-3 font-[500] text-[#F2F8F6]">
+              <th className="min-w-[10rem] border-r border-[#F2F8F6] bg-[#181A53] px-4 py-3 font-[500] text-[#F2F8F6]">
                 Email
               </th>
-              <th className=" border-r border-[#F2F8F6]  bg-[#181A53]    px-4 py-3 font-[500] text-[#F2F8F6]">
+              <th className="min-w-[10rem] border-r border-[#F2F8F6] bg-[#181A53] px-4 py-3 font-[500] text-[#F2F8F6]">
                 Number
               </th>
-              <th className=" border-r border-[#F2F8F6]  bg-[#181A53]    px-4 py-3 font-[500] text-[#F2F8F6]">
+              <th className="min-w-[10rem] border-r border-[#F2F8F6] bg-[#181A53] px-4 py-3 font-[500] text-[#F2F8F6]">
                 Balance
               </th>
-              <th className="rounded-tr-md       bg-[#181A53]    px-4 py-3 font-[500] text-[#F2F8F6]">
+              <th className="rounded-tr-md bg-[#181A53] px-4 py-3 font-[500] text-[#F2F8F6]">
                 Actions
               </th>
             </tr>
           </thead>
           <tbody>
-            {propertiesData.map(
+            {currentProperties.map(
               (properties) =>
                 properties && (
                   <tr
                     key={properties._id}
                     className="hover:bg-gray-100 bg-white hover:bg-gray-3"
                   >
-                    <td className="border-b border-r border-[#181A53]  px-7 py-3 text-[1rem] font-[400] capitalize text-[#181A53]">
-                      {" "}
-                      <div className=" flex items-center justify-start gap-4">
+                    <td className="border-b border-r border-[#181A53] px-7 py-3 text-[1rem] font-[400] capitalize text-[#181A53]">
+                      <div className="flex items-center justify-start gap-4">
                         <Image
                           width={20}
                           height={20}
@@ -176,13 +222,13 @@ const TablesPage: React.FC = () => {
                         <p>{properties.building_name}</p>
                       </div>
                     </td>
-                    <td className="border-b border-r border-[#181A53]  px-4 py-3 text-center text-[1rem] font-[400] capitalize text-[#181A53]">
+                    <td className="border-b border-r border-[#181A53] px-4 py-3 text-center text-[1rem] font-[400] capitalize text-[#181A53]">
                       {properties.address}
                     </td>
-                    <td className="border-b border-r border-[#181A53]  px-4 py-3 text-center text-[1rem] font-[400] capitalize text-[#181A53]">
+                    <td className="border-b border-r border-[#181A53] px-4 py-3 text-center text-[1rem] font-[400] capitalize text-[#181A53]">
                       {properties.pincode}
                     </td>
-                    <td className="border-b border-r border-[#181A53]  px-4 py-3 text-center text-[1rem] font-[400] capitalize text-[#181A53]">
+                    <td className="border-b border-r border-[#181A53] px-4 py-3 text-center text-[1rem] font-[400] capitalize text-[#181A53]">
                       {properties.security_deposit}
                     </td>
                     <td className="border px-4 py-2 text-center">
@@ -190,9 +236,7 @@ const TablesPage: React.FC = () => {
                         <button>
                           <FaEye
                             className="cursor-pointer text-lg text-[#BDEA09]"
-                            onClick={() => {
-                              handleViewClick(properties);
-                            }}
+                            onClick={() => handleViewClick(properties)}
                           />
                         </button>
                         <button
@@ -209,14 +253,46 @@ const TablesPage: React.FC = () => {
           </tbody>
         </table>
       </div>
-      {/* Modal */}
+
+      {/* Pagination Controls */}
+      <div>
+        {/* Pagination Controls */}
+        {propertiesData.length > totalPages && (
+          <div className="mt-4 flex items-center justify-between">
+            <button
+              className={`rounded bg-[#BDEA09] px-4 py-2 text-[#0E0E0C] ${
+                currentPage === 1 ? "cursor-not-allowed opacity-50" : ""
+              }`}
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+            <span className="font-semibold text-[#0E0E0C]">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              className={`rounded bg-[#BDEA09] px-4 py-2 text-[#0E0E0C] ${
+                currentPage === totalPages
+                  ? "cursor-not-allowed opacity-50"
+                  : ""
+              }`}
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
+        )}
+      </div>
+
       {isModalOpen && (
         <div
           id="modal-background"
-          className="fixed inset-0 z-10 flex items-center justify-center  bg-[#5f5f5f] bg-opacity-50 backdrop-blur-[2px]"
+          className="fixed inset-0 z-[10000] flex items-center justify-center  bg-[#5f5f5f] bg-opacity-50 backdrop-blur-[2px]"
         >
           <div
-            className="relative min-w-[80%] transform  rounded-[25px] bg-[#0E0E0C] p-6 px-9 shadow-lg shadow-graydark transition-all  ease-in-out md:min-w-[30%] lg:min-w-[25%]"
+            className="relative max-h-[90vh] min-w-[90%] transform overflow-y-auto  rounded-[25px] bg-[#0E0E0C] p-6 px-9 shadow-lg shadow-graydark transition-all  ease-in-out md:min-w-[30%] lg:min-w-[25%]"
             style={{ animation: "fadeIn 0.3s" }}
           >
             <IoClose
@@ -227,26 +303,105 @@ const TablesPage: React.FC = () => {
               Update Properties Listing Type
             </h3>
 
-            <div className="mb-4 flex flex-col items-center justify-center ">
-              <label className="mb-3 block max-w-[200px] text-center text-sm font-medium text-white">
-                Properties Listing Type
-              </label>
-              <select
-                value={rentType}
-                className="w-full max-w-[200px]  rounded-md bg-[#F2F8F6] px-4 py-2 font-satoshi text-[1rem] font-[500] text-black"
-                onChange={(e) =>
-                  setRentType(e.target.value as "buy" | "rent" | "sale")
-                }
-              >
-                <option value="buy">Buy</option>
-                <option value="rent">Rent</option>
-                <option value="sale">Sale</option>
-              </select>
+            <div className="grid items-center gap-1 md:grid-cols-2">
+              <div className="mb-4 flex flex-col items-center justify-center ">
+                <label className="mb-3 block max-w-[200px] text-center text-sm font-medium text-white">
+                  Properties Listing Type
+                </label>
+                <select
+                  value={rentType}
+                  className="w-full max-w-[200px]  rounded-md bg-[#F2F8F6] px-4 py-2 font-satoshi text-[1rem] font-[500] text-black"
+                  onChange={(e) =>
+                    setRentType(e.target.value as "buy" | "rent" | "sale")
+                  }
+                >
+                  <option value="buy">Buy</option>
+                  <option value="rent">Rent</option>
+                  <option value="sale">Sale</option>
+                </select>
+              </div>
+
+              <div className="mb-4 flex flex-col items-center justify-center ">
+                <label className="mb-3 block max-w-[200px] text-center text-sm font-medium text-white">
+                  Properties Facing Direction
+                </label>
+                <select
+                  value={facing}
+                  className="w-full max-w-[200px] rounded-md bg-[#F2F8F6] px-4 py-2 font-satoshi text-[1rem] font-[500] text-black"
+                  onChange={(e) =>
+                    setFacing(
+                      e.target.value as "north" | "south" | "east" | "west",
+                    )
+                  }
+                >
+                  <option value="east">East</option>
+                  <option value="west">West</option>
+                  <option value="north">North</option>
+                  <option value="south">South</option>
+                </select>
+              </div>
+
+              <div className="mb-4 flex flex-col items-center justify-center ">
+                <label className="mb-3 block max-w-[200px] text-center text-sm font-medium text-white">
+                  Properties Type
+                </label>
+                <select
+                  value={property_type}
+                  className="w-full max-w-[200px] rounded-md bg-[#F2F8F6] px-4 py-2 font-satoshi text-[1rem] font-[500] text-black"
+                  onChange={(e) =>
+                    setPropertyType(
+                      e.target.value as "Residential" | "Commercial",
+                    )
+                  }
+                >
+                  <option value="Residential">Residential</option>
+                  <option value="Commercial">Commercial</option>
+                </select>
+              </div>
+
+              <div className="mb-4 flex flex-col items-center justify-center ">
+                <label className="mb-3 block max-w-[200px] text-center text-sm font-medium text-white">
+                  Properties Posted By
+                </label>
+                <select
+                  value={property_posted_by}
+                  className="w-full max-w-[200px] rounded-md bg-[#F2F8F6] px-4 py-2 font-satoshi text-[1rem] font-[500] text-black"
+                  onChange={(e) =>
+                    setPropertyPostedBy(e.target.value as "agent" | "owner")
+                  }
+                >
+                  <option value="agent">Agent</option>
+                  <option value="owner">Owner</option>
+                </select>
+              </div>
+
+              <div className="relative">
+                <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
+                  Properties Sub Type
+                </label>
+                <input
+                  type="text"
+                  value={property_subtype}
+                  onChange={(e) => setPropertySubType(e.target.value)}
+                  className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
+                />
+              </div>
+              <div className="relative">
+                <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
+                  Properties PinCode
+                </label>
+                <input
+                  type="text"
+                  value={pincode}
+                  onChange={(e) => setPincode(e.target.value)}
+                  className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
+                />
+              </div>
             </div>
 
-            <div className="mt-3 flex  items-center justify-center gap-3 space-x-4">
+            <div className="my-3 flex  items-center justify-center gap-3 space-x-4">
               <button
-                className="rounded bg-[#BDEA09] px-[50px] py-2 text-lg font-semibold text-[#0E0E0C] hover:bg-[#d2e87c]"
+                className="rounded bg-[#BDEA09] px-[90px] py-2 text-lg font-semibold text-[#0E0E0C] hover:bg-[#d2e87c]"
                 onClick={handleSubmit}
               >
                 Submit
@@ -255,192 +410,15 @@ const TablesPage: React.FC = () => {
           </div>
         </div>
       )}
-
-      {isViewModal && user && (
-        <div
-          id="modal-background"
-          className="fixed inset-0 z-[1000] flex items-center justify-center  overflow-y-auto bg-[#5f5f5f] bg-opacity-50   backdrop-blur-[2px]"
-          onClick={handleOutsideClick}
-        >
-          <div
-            className="relative mt-[20vh]  min-w-[80%] transform rounded-[25px] bg-[#0E0E0C] p-6 px-9 shadow-lg shadow-graydark transition-all  ease-in-out md:min-w-[40%] lg:min-w-[50%]"
-            style={{ animation: "fadeIn 0.3s" }}
-          >
-            <IoClose
-              className=" absolute right-5 top-5 cursor-pointer text-[2rem] text-[#BDEA09]"
-              onClick={() => {
-                setIsViewModal(false);
-              }}
-            />
-            <Image
-              width={80}
-              height={20}
-              objectFit="center"
-              className="mx-auto mb-4 h-[100px] w-[80%] rounded-md object-contain "
-              alt={user.building_name || "image"}
-              src={user.images[0] || "/images/user/user-06.png"}
-            />
-            <div>
-              <div className="grid grid-cols-1 items-center gap-4 md:grid-cols-2">
-                <div className="relative">
-                  <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
-                    Building Name
-                  </label>
-                  <input
-                    type="text"
-                    value={user.building_name}
-                    disabled={true}
-                    className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
-                  />
-                </div>
-                <div className="relative">
-                  <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
-                    Address
-                  </label>
-                  <input
-                    type="text"
-                    value={user.address}
-                    disabled={true}
-                    className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
-                  />
-                </div>
-                <div className="relative">
-                  <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
-                    Available From
-                  </label>
-                  <input
-                    type="text"
-                    value={user.available_from}
-                    disabled={true}
-                    className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
-                  />
-                </div>
-                <div className="relative">
-                  <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
-                    No of Bathroom
-                  </label>
-                  <input
-                    type="text"
-                    value={user.bathrooms}
-                    disabled={true}
-                    className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
-                  />
-                </div>
-                <div className="relative">
-                  <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
-                    Owner Name
-                  </label>
-                  <input
-                    type="text"
-                    value={user.owner_name}
-                    disabled={true}
-                    className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
-                  />
-                </div>
-                <div className="relative">
-                  <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
-                    Owner Phone No
-                  </label>
-                  <input
-                    type="text"
-                    value={user.owner_phone}
-                    disabled={true}
-                    className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
-                  />
-                </div>
-                <div className="relative">
-                  <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
-                    Building Overview
-                  </label>
-                  <input
-                    type="text"
-                    value={user.description}
-                    disabled={true}
-                    className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
-                  />
-                </div>
-                <div className="relative">
-                  <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
-                    No of Bed Room
-                  </label>
-                  <input
-                    type="text"
-                    value={user.bedrooms}
-                    disabled={true}
-                    className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
-                  />
-                </div>
-                <div className="relative">
-                  <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
-                    Facilities
-                  </label>
-                  <input
-                    type="text"
-                    value={user.facilities}
-                    disabled={true}
-                    className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
-                  />
-                </div>
-                <div className="relative">
-                  <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
-                    furnish Type
-                  </label>
-                  <input
-                    type="text"
-                    value={user.furnish_type}
-                    disabled={true}
-                    className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
-                  />
-                </div>
-                <div className="relative">
-                  <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
-                    Building Name
-                  </label>
-                  <input
-                    type="text"
-                    value={user.building_name}
-                    disabled={true}
-                    className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
-                  />
-                </div>
-                <div className="relative">
-                  <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
-                    Monthly Rent
-                  </label>
-                  <input
-                    type="text"
-                    value={user.monthly_rent}
-                    disabled={true}
-                    className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
-                  />
-                </div>
-                <div className="relative">
-                  <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
-                    Security Deposit
-                  </label>
-                  <input
-                    type="text"
-                    value={user.security_deposit}
-                    disabled={true}
-                    className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
-                  />
-                </div>
-                <div className="relative">
-                  <label className="mb-1 block text-[.925rem] font-medium text-[#F2F8F6]">
-                    Listing Type
-                  </label>
-                  <input
-                    type="text"
-                    value={user.listing_type}
-                    disabled={true}
-                    className="mt-1 w-full rounded-[4px] border bg-[#F2F8F6] p-2 px-4 py-3 text-[#0E0E0C]"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <div>
+        {isViewModal && user && (
+          <ViewModal
+            handleOutsideClick={handleOutsideClick}
+            user={user}
+            setIsViewModal={setIsViewModal}
+          />
+        )}
+      </div>
     </DefaultLayout>
   );
 };

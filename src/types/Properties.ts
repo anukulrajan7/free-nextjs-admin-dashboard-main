@@ -30,7 +30,10 @@ export type PropertyListing = {
     facilities: string[]; // Array of facility names
     images: string[]; // Array of image URLs
     createdAt: string; // Consider using Date if parsing
-    updatedAt: string; // Consider using Date if parsing
+    updatedAt: string;
+    property_posted_by: "agent" | "owner";
+    property_subtype: string;
+    // Consider using Date if parsing
     __v: number;
 }
 

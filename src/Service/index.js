@@ -6,9 +6,10 @@ export const apiUrl = {
   getAllUsers: baseUrl + "api/admin/users",
   getUserDetails: baseUrl + "api/admin/users/",
   getUserDetail: baseUrl + "api/profile",
-  updateUser: baseUrl + "api/admin/users/",
+  updateUser: baseUrl + "api/admin/updateUser",
   getAllPropertiesDeteails: baseUrl + "api/admin/properties",
   getPropertyDetails: baseUrl + "api/admin/properties/",
-  updateProperty: baseUrl + "api/admin/properties",
+  updateProperty: baseUrl + "api/admin/updateProperties",
   updateCoin: baseUrl + "api/admin/coins/",
+  dashboard: baseUrl + "api/admin/dashboard",
 };

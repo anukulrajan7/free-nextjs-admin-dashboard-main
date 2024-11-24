@@ -12,10 +12,87 @@ import { IoClose } from "react-icons/io5";
 import { toast } from "react-toastify";
 import ViewModal from "@/components/ViewModal";
 
+
+const FilterComponent = ({selectedFilter,setSelectedFilter ,filterValue, setFilterValue}:{selectedFilter: string, setSelectedFilter: React.Dispatch<React.SetStateAction<string>>,filterValue: string, setFilterValue: React.Dispatch<React.SetStateAction<string>>}) => {
+  // State to manage the selected filter and its value
+
+  // Options for the "Filter By" dropdown
+  const filterOptions = [
+    { label: "Pincode", value: "pincode" },
+    { label: "Listing Type", value: "listing_type" },
+    { label: "Property Type", value: "property_type" },
+    { label: "Property Subtype", value: "property_subtype" },
+    { label: "Posted By", value: "property_posted_by" },
+    { label: "Furnish Type", value: "furnish_type" },
+    { label: "Preferred Tenant", value: "preferred_tenant" },
+  ];
+
+  // Handler for changing the selected filter
+  const handleFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedFilter(event.target.value);
+    setFilterValue(""); // Reset value when filter type changes
+  };
+
+  // Handler for changing the filter value
+  const handleValueChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFilterValue(event.target.value);
+  };
+
+  return (
+    <div className=" w-fit mx-auto px-8 p-2 flex-col md:flex-row bg-white rounded-2xl shadow-md flex gap-10 items-center ">
+      <h2 className="text-lg font-semibold  text-gray-800">Filters</h2>
+
+        <select
+          value={selectedFilter}
+          onChange={handleFilterChange}
+          className=" p-2 border border-none focus:outline-none rounded-lg  bg-slate-200 w-[180px] px-4 shadow-md"
+        >
+          {filterOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+   
+
+ 
+
+        {selectedFilter === "listing_type" || selectedFilter === "furnish_type" || selectedFilter === "preferred_tenant" ? (
+          <select
+            value={filterValue}
+            onChange={handleValueChange}
+  className=" p-2 border border-none focus:outline-none rounded-lg  bg-slate-200 w-[180px] px-4 shadow-md"
+          >
+            <option value="">Select an option</option>
+            {/* Options can be dynamically loaded if needed */}
+            <option value="residential">Residential</option>
+            <option value="commercial">Commercial</option>
+            <option value="furnished">Furnished</option>
+            <option value="unfurnished">Unfurnished</option>
+            <option value="family">Family</option>
+            <option value="bachelor">Bachelor</option>
+          </select>
+        ) : (
+          <input
+            type="text"
+            value={filterValue}
+            onChange={handleValueChange}
+            placeholder={`Enter ${selectedFilter}`}
+            className=" p-2 border border-none focus:outline-none rounded-lg  bg-slate-200 w-[180px] px-4 shadow-md"          />
+        )}
+   
+   
+    </div>
+  );
+};
+
+
 const TablesPage: React.FC = () => {
   const [propertiesData, setPropertiesData] = useState<PropertyListings>([]);
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
   const [errors, setErrors] = useState({ name: "", email: "" });
+  const [selectedFilter, setSelectedFilter] = useState<string>("pincode");
+  const [filterValue, setFilterValue] = useState<string>("");
   const [user, setUser] = useState<PropertyListing>();
   const [isViewModal, setIsViewModal] = useState(false);
   const [rentType, setRentType] = useState<"buy" | "rent" | "sale">("buy");
@@ -177,9 +254,9 @@ const TablesPage: React.FC = () => {
   return (
     <DefaultLayout>
       <Breadcrumb pageName="Properties" />
-
-      <div className="r max-h-[70vh] w-full max-w-[90vw] overflow-auto bg-slate-100 p-4 shadow-lg ">
-        <table className="w-full shadow-lg shadow-gray">
+      <FilterComponent filterValue={filterValue} setFilterValue={setFilterValue} selectedFilter={selectedFilter} setSelectedFilter={setSelectedFilter} />
+      <div className="  min-w-[90vw]  overflow-auto p-4 shadow-lg ">
+        <table className="w-full max-h-[70vh] shadow-lg shadow-gray">
           <thead>
             <tr>
               <th className="font-l s min-w-[10rem] rounded-tl-lg border-r border-[#F2F8F6]  bg-[#181A53] px-4 py-2 text-white">

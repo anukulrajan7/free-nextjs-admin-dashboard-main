@@ -27,8 +27,8 @@ export default function DefaultLayout({
           {/* <!-- ===== Header End ===== --> */}
 
           {/* <!-- ===== Main Content Start ===== --> */}
-          <main className="">
-            <div className="mx-auto my-4 w-[95%]">{children}</div>
+          <main className="w-full flex justify-center items-center bg-slate-100 ">
+            <div className="mx-auto my-8 px-4 w-fit bg-slate-100 min-h-screen max-h-screen overflow-hidden">{children}</div>
           </main>
           {/* <!-- ===== Main Content End ===== --> */}
         </div>

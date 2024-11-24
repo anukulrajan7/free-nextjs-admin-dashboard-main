@@ -4,6 +4,7 @@ import React, { useState, ChangeEvent, FormEvent } from "react";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { apiUrl } from "@/Service";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 const SignIn: React.FC = () => {
   const [userName, setUserName] = useState<string>("");
@@ -20,7 +21,7 @@ const SignIn: React.FC = () => {
   };
 
   const handleSubmit = async (e: FormEvent) => {
-    console.log("we called this data");
+ 
     e.preventDefault();
 
     try {
@@ -46,15 +47,18 @@ const SignIn: React.FC = () => {
         const expires = `expires=${date.toUTCString()}`;
         // Set the token in the cookie
         document.cookie = `token=${token}; path=/; secure; samesite=strict; ${expires}`;
+        toast.success("Login Successfully");
 
         router.push("/");
 
-        console.log("Token stored in cookie:", token);
       } else {
-        console.error("Login failed");
+        const errorData = await response.json();
+        toast.error('Failed To Login',errorData?.message);
+       
       }
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error:", error);
+      toast.error("Failed To Login" + error?.message);
     }
   };
   return (

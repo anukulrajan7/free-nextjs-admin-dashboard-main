@@ -163,7 +163,7 @@ const TablesPage: React.FC = () => {
     <DefaultLayout>
       <Breadcrumb pageName="Users" />
 
-      <div className="max-h-[60vh] w-full max-w-[90vw] overflow-auto bg-slate-100 p-4 shadow-lg">
+      <div className="max-h-[60vh] w-full min-w-[90vw] overflow-auto bg-slate-100 min-h-screen p-4 shadow-lg">
         <table className="w-full shadow-lg shadow-gray">
           <thead>
             <tr>

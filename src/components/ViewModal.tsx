@@ -127,11 +127,8 @@ const ViewModal: React.FC<{
   // Get the input fields for the current page
   const displayedFields =
     currentPage === 1
-      ? inputFields.slice(0, firstPageFields)
-      : inputFields.slice(
-          firstPageFields + (currentPage - 2) * subsequentPageFields,
-          firstPageFields + (currentPage - 1) * subsequentPageFields,
-        );
+      ? inputFields
+      : inputFields
 
   // Framer-motion animation settings for modal
   const modalVariants = {
@@ -150,7 +147,7 @@ const ViewModal: React.FC<{
         animate="visible"
         exit="exit"
         variants={modalVariants}
-        className="relative mt-10 max-h-[90%] max-w-[90%] overflow-y-auto rounded-[25px] bg-[#201f23] p-6 px-4 shadow-lg shadow-graydark transition-all ease-in-out md:max-w-[50%] md:px-9"
+        className="relative mt-10 max-h-[90%] max-w-[90%] overflow-y-auto rounded-[25px] bg-[#201f23] p-6 px-4 shadow-lg shadow-graydark transition-all ease-in-out md:max-w-[70%] md:px-9"
       >
         {/* Close Icon */}
         <IoClose
@@ -194,7 +191,7 @@ const ViewModal: React.FC<{
         </div>
 
         {/* Pagination controls for input fields */}
-        <div className="mt-4 flex justify-center space-x-4">
+        {/* <div className="mt-4 flex justify-center space-x-4">
           {Array.from({ length: totalPages }, (_, index) => (
             <button
               key={index}
@@ -208,7 +205,7 @@ const ViewModal: React.FC<{
               {index + 1}
             </button>
           ))}
-        </div>
+        </div> */}
       </motion.div>
     </div>
   );

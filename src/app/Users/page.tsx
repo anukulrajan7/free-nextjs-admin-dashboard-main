@@ -122,7 +122,7 @@ const TablesPage: React.FC = () => {
             name: updatedName,
             email: updatedEmail,
             userId: selectedUser._id,
-            balance: String(userBalance),
+            balance: userBalance,
           };
 
           const response = await fetch(url, {
